@@ -58,7 +58,7 @@ public class TrackingNumberServiceImpl implements TrackingNumberService {
             throw new InvalidInputException("Validation failed: " + e.getMessage(), e); // Custom exception
         } catch (IllegalArgumentException e) {
             logger.error("Invalid input detected: {}", e.getMessage(), e);
-            throw new InvalidInputException("Invalid input for tracking number generation", e);
+            throw new TrackingNumberGenerationException("Invalid input for tracking number generation", e);
         } catch (DuplicateTrackingNumberException e) {
             logger.error("Duplicate tracking number detected: {}", e.getMessage(), e);
             throw e;
@@ -82,6 +82,7 @@ public class TrackingNumberServiceImpl implements TrackingNumberService {
     private String generateUniqueTrackingNumber(TrackingNumberDto requestDto) {
         logger.debug("Generating unique tracking number...");
         try {
+            // Step 1: Generate an initial tracking number
             String trackingNumber = TrackingNumberGeneratorUtil.generateTrackingNumber(
                     requestDto.getOriginCountryId(),
                     requestDto.getDestinationCountryId(),
@@ -90,13 +91,22 @@ public class TrackingNumberServiceImpl implements TrackingNumberService {
                     requestDto.getCustomerSlug()
             );
 
+            // Step 2: Check for collisions and regenerate if needed
             while (repository.existsById(trackingNumber)) {
                 logger.warn("Collision detected for tracking number: {}. Regenerating...", trackingNumber);
-                trackingNumber = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16).toUpperCase();
+
+                // Use origin and destination codes as the first 4 letters
+                final String originCode = requestDto.getOriginCountryId().toUpperCase().substring(0, Math.min(requestDto.getOriginCountryId().length(), 2));
+                final String destinationCode = requestDto.getDestinationCountryId().toUpperCase().substring(0, Math.min(requestDto.getDestinationCountryId().length(), 2));
+
+                // Generate the rest using UUID and append
+                String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 12).toUpperCase();
+                trackingNumber = originCode + destinationCode + randomPart;
             }
 
             return trackingNumber;
         } catch (Exception e) {
+            logger.error("Error generating unique tracking number: {}", e.getMessage(), e);
             throw new IllegalArgumentException("Unable to generate unique tracking number", e);
         }
     }

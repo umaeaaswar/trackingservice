@@ -46,5 +46,14 @@ public class TrackingNumberDto {
     @NotBlank(message = "Customer slug cannot be blank")
     @Size(max = 50, message = "Customer slug must be at most 50 characters long")
     private String customerSlug;
+
+    // Manually defined all-argument constructor excluding trackingNumber and createdAt
+    public TrackingNumberDto(String originCountryId, String destinationCountryId, BigDecimal weight, UUID customerId, String customerSlug) {
+        this.originCountryId = originCountryId;
+        this.destinationCountryId = destinationCountryId;
+        this.weight = weight;
+        this.customerId = customerId;
+        this.customerSlug = customerSlug;
+    }
 }
 
