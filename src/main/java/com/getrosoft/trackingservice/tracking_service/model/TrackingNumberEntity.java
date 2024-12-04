@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "tracking_number")
-public class TrackingNumberEntity {
+public class TrackingNumberEntity implements Serializable {
 
     @Id
     @Schema(description = "Tracking number", example = "TRCK1234567890")
